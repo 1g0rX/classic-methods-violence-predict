@@ -1,92 +1,104 @@
 # Classic Methods Violence Predict
 
-Binary classification of violence against women in images using **Random Forest** and **SVM (RBF kernel)**.
+Classificação binária de violência contra a mulher em imagens usando **Random Forest** e **SVM (kernel RBF)**.
 
-Part of the Computer Vision seminar at **CEFET-MG — Campus V (Divinópolis)**, supervised by Prof. Thabatta Moreira.
-
----
-
-## Pipeline
-
-1. **Collection** — 24 images (12 violence, 12 non-violence), copyright-free, distinct contexts
-2. **Anonymization** — Gaussian blur 5×5 via OpenCV
-3. **Preprocessing** — Resize to 150×150, flatten, normalize (÷255)
-4. **Data augmentation** — 50 variations per original (rotation 30°, zoom 20%, shift 10%, horizontal flip)
-5. **Model training** — RF n_estimators tuning (1–100, step 5, 5 reps each) + SVM RBF
-6. **Evaluation** — 5 runs per model with accuracy, precision, recall, F1 (macro avg) and confusion matrix
+Trabalho da disciplina Visão Computacional — **CEFET-MG Campus V (Divinópolis)**, sob orientação da Prof.ª Thabatta Moreira.
 
 ---
 
-## Key Results
+## 📋 Pipeline
 
-### ⚠ Data Leakage Discovery
-
-Early runs split the test set **after** augmentation, causing data leakage (test images derived from the same originals as training). After correcting the pipeline (75/25 split **before** augmentation), results changed significantly:
-
-| Scenario | RF | SVM |
-|---|---|---|
-| With leakage | 96.09% | 99.43% |
-| **Corrected** | **51.13%** | **75.33%** |
-
-### Confusion Matrices (Corrected Pipeline)
-
-**Random Forest** (n_estimators=41, 300 test samples):
-
-| | Pred: Non-violence | Pred: Violence |
-|---|---|---|
-| **Actual: Non-violence** | 110 | 40 |
-| **Actual: Violence** | 105 | 45 |
-
-**SVM RBF** (300 test samples):
-
-| | Pred: Non-violence | Pred: Violence |
-|---|---|---|
-| **Actual: Non-violence** | 131 | 19 |
-| **Actual: Violence** | 55 | 95 |
-
-The corrected SVM reaches 75.33% accuracy but with **55 false negatives** — a critical issue for violence detection.
+1. **Coleta** — 24 imagens (12 violência, 12 não violência), livres de direitos autorais, contextos distintos
+2. **Anonimização** — Filtro Gaussiano 5×5 via OpenCV
+3. **Pré-processamento** — Redimensionar para 150×150, achatar (flatten), normalizar (÷255)
+4. **Data augmentation** — 50 variações por original (rotação 30°, zoom 20%, deslocamento 10%, flip horizontal)
+5. **Treinamento** — RF com tuning de n_estimators (1–100, passo 5, 5 repetições) + SVM RBF (5 execuções)
+6. **Avaliação** — Acurácia, precisão, recall, F1 (média macro) e matriz de confusão
 
 ---
 
-## Project Structure
+## 📦 Estrutura do Projeto
 
 ```
 classic-methods-violence-predict/
 ├── Classic Methods/
 │   ├── projeto_rf/
-│   │   └── rf_violencia.py       # Random Forest with n_estimators tuning
+│   │   └── rf_violencia.py          # Random Forest com tuning
 │   ├── projeto_svm/
-│   │   └── svm_violencia.py       # SVM with RBF kernel
-│   ├── main_classica_RF.ipynb    # RF notebook
-│   └── main_classica_SVM.ipynb   # SVM notebook
+│   │   └── svm_violencia.py          # SVM com kernel RBF
+│   ├── main_classica_RF.ipynb       # Notebook do RF
+│   └── main_classica_SVM.ipynb      # Notebook do SVM
 ├── .gitignore
 ├── README.md
 └── requirements.txt
 ```
 
-Each script generates output inside its `imagens/` subfolder:
-- `metricas_*.txt` — per-run metrics
-- `matriz_confusao_*.png` — confusion matrix plot
-- `grafico_n_estimators*.png` — n_estimators vs accuracy (RF only)
-- `predicao_*.png` — prediction on `violencia.webp`
+Cada script gera dentro de `imagens/`:
+- `metricas_*.txt` — relatório das execuções
+- `matriz_confusao_*.png` — matriz de confusão
+- `grafico_n_estimators*.png` — número de árvores × acurácia (apenas RF)
+- `predicao_*.png` — predição em `violencia.webp`
 
 ---
 
-## Dataset Setup
+## 🖼️ Como configurar as imagens
 
-Place images in `Classic Methods/projeto_*/imagens/originais/`:
+O dataset **não está incluído** neste repositório. Você deve criar as pastas e adicionar manualmente as imagens:
 
 ```
-imagens/originais/
-├── violencia/          # 12 images
-└── nao_violencia/      # 12 images
+Classic Methods/projeto_rf/imagens/originais/
+├── violencia/          # 12 imagens com indícios de agressão
+└── nao_violencia/      # 12 imagens de casais sem agressão
 ```
 
-Images must be JPEG, any size (resized automatically). Anonymization with Gaussian blur is applied during preprocessing.
+```
+Classic Methods/projeto_svm/imagens/originais/
+├── violencia/          # 12 imagens com indícios de agressão
+└── nao_violencia/      # 12 imagens de casais sem agressão
+```
+
+**Requisitos das imagens:**
+- Formato JPEG
+- Livres de direitos autorais
+- Contextos distintos entre si
+- Serão anonimizadas automaticamente pelo filtro Gaussiano durante o pré-processamento
+
+> ⚠️ As pastas `aumentadas/`, `treino/` e `validacao/` são geradas automaticamente na primeira execução.
 
 ---
 
-## Requirements
+## 🔬 Resultados
+
+### ⚠ Descoberta: Vazamento de Dados (Data Leakage)
+
+As primeiras execuções separavam o conjunto de teste **após** o data augmentation, o que causava vazamento: as imagens de teste eram variações das mesmas originais usadas no treino. Após corrigir o pipeline (divisão 75/25 **antes** do augmentation), os resultados mudaram drasticamente:
+
+| Cenário | RF | SVM |
+|---|---|---|
+| Com vazamento | 96,09% | 99,43% |
+| **Corrigido** | **51,13%** | **75,33%** |
+
+### Matrizes de Confusão (Pipeline Corrigido)
+
+**Random Forest** (n_estimators=41, 300 amostras de teste):
+
+| | Pred: Não Violência | Pred: Violência |
+|---|---|---|
+| **Real: Não Violência** | 110 | 40 |
+| **Real: Violência** | 105 | 45 |
+
+**SVM RBF** (300 amostras de teste):
+
+| | Pred: Não Violência | Pred: Violência |
+|---|---|---|
+| **Real: Não Violência** | 131 | 19 |
+| **Real: Violência** | 55 | 95 |
+
+O SVM corrigido atingiu 75,33% de acurácia, porém com **55 falsos negativos** — um número crítico para detecção de violência, pois significa deixar de identificar uma agressão.
+
+---
+
+## 📦 Requisitos
 
 ```
 tensorflow>=2.12.0
@@ -100,7 +112,7 @@ Pillow>=9.4.0
 
 ---
 
-## How to Run
+## 🚀 Como executar
 
 ```bash
 pip install -r requirements.txt
@@ -110,12 +122,12 @@ python "Classic Methods/projeto_svm/svm_violencia.py"
 
 ---
 
-## References
+## 📚 Referências
 
 - Breiman, L. (2001). Random Forests. *Machine Learning*, 45(1), 5–32.
 - Cortes, C. & Vapnik, V. (1995). Support-vector networks. *Machine Learning*, 20(3), 273–297.
-- Moreira, T. (2026). Lecture notebooks — Computer Vision. CEFET-MG.
+- Moreira, T. (2026). Cadernos de aula — Visão Computacional. CEFET-MG.
 
 ---
 
-*Author: Igor Moreira Lopes — CEFET-MG Campus V (Divinópolis)*
+*Autor: Igor Moreira Lopes — CEFET-MG Campus V (Divinópolis)*
