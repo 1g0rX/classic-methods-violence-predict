@@ -1,0 +1,19 @@
+*.pdf
+*.tex
+*.aux
+*.log
+*.out
+resumo_expandido.md
+metricas_*.txt
+comparacao_*.png
+*.zip
+*.ipynb
+
+# Dataset images and plots
+Classic Methods/projeto_rf/imagens/
+Classic Methods/projeto_svm/imagens/
+
+# Extra folders
+definitivas/
+imagens_n_violencia/
+
